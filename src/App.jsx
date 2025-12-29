@@ -195,6 +195,35 @@ const Objectif100k = () => {
     let mois = 0;
     let bascule = null;
 
+    console.log('🔍 calculerTrajectoire appelée - Capital:', capital, 'Objectif:', objectif);
+
+    // FIX 1: Si l'objectif est déjà atteint
+    if (capital >= objectif) {
+      console.log('✅ Objectif déjà atteint ! Capital:', capital, '>=', objectif);
+      
+      const dateAtteinte = new Date();
+      dateAtteinte.setMonth(dateAtteinte.getMonth() + debutDans);
+      
+      return {
+        moisTotal: 0,
+        annees: 0,
+        moisRestants: 0,
+        dateAtteinte,
+        capitalFinal: Math.round(capital),
+        totalVerse: Math.round(totalVerse),
+        totalInterets: 0,
+        pourcentageInterets: 0,
+        data: [{
+          mois: 0,
+          annee: 0,
+          capitalTotal: Math.round(capital),
+          capitalVerse: Math.round(totalVerse),
+          interets: 0
+        }],
+        pointBascule: null
+      };
+    }
+
     if (debutDans > 0) {
       for (let i = 0; i < debutDans; i++) {
         data.push({
@@ -218,7 +247,7 @@ const Objectif100k = () => {
       interets: 0
     });
 
-    while (capital < objectif && mois < 600) {
+    while (capital < objectif && mois < 960) {
       mois++;
       const interet = capital * tauxMensuel;
       capital += interet;
@@ -266,11 +295,28 @@ const Objectif100k = () => {
       }
     }
 
-    return null;
+    // FIX 2: Si on n'atteint jamais 100k en 80 ans
+    return {
+      moisTotal: 960,
+      annees: 80,
+      moisRestants: 0,
+      dateAtteinte: new Date(Date.now() + 960 * 30 * 24 * 60 * 60 * 1000),
+      capitalFinal: Math.round(capital),
+      totalVerse: Math.round(totalVerse),
+      totalInterets: Math.round(capital - totalVerse),
+      pourcentageInterets: capital > 0 ? Math.round(((capital - totalVerse) / capital) * 100) : 0,
+      data,
+      pointBascule: bascule
+    };
   };
 
   const calculerSimulation = () => {
+    console.log('🚀 calculerSimulation appelée');
+    
     const base = calculerTrajectoire(montantInitial, versementMensuel, rendementAnnuel, 0, frequenceVersement);
+    
+    console.log('📊 Résultat base:', base);
+    
     setResultat(base);
     setChartData(base?.data || []);
     setPointBascule(base?.pointBascule);
